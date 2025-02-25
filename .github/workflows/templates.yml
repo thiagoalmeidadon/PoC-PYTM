@@ -28,7 +28,7 @@ jobs:
           python threat_model.py --dfd --report > pytm_report.txt
 
       - name: Upload pyTM Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pytm-threat-report
           path: pytm_report.txt
