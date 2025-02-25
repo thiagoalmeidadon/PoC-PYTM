@@ -25,7 +25,7 @@ jobs:
 
       - name: Run pyTM threat model
         run: |
-          python threat_model.py --dfd --report > pytm_report.txt
+          python threat_model.py --dfd --report high > pytm_report.txt
 
       - name: Upload pyTM Report
         uses: actions/upload-artifact@v4
