@@ -1,0 +1,16 @@
+rules:
+  - id: insecure-sql-query
+    languages: [python]
+    patterns:
+      - pattern: |
+          cursor.execute(f"... {request...} ...")
+    message: "Possível SQL Injection detectado! Evite concatenar strings diretamente em queries SQL."
+    severity: ERROR
+
+  - id: xss-in-render-template
+    languages: [python]
+    patterns:
+      - pattern: |
+          render_template_string(f"... {request...} ...")
+    message: "Possível XSS detectado! Evite renderizar entrada do usuário sem sanitização."
+    severity: ERROR

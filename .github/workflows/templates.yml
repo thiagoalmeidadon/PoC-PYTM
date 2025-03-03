@@ -1,4 +1,4 @@
-name: pyTM Threat Model PoC
+name: Threat Intel Pipeline
 
 on:
   push:
@@ -6,29 +6,36 @@ on:
       - main
 
 jobs:
-  pytm-analysis:
+  security-analysis:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout código
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
+      - name: Instalar dependências
         run: |
           python -m pip install --upgrade pip
-          pip install pytm
+          pip install flask sqlite3 semgrep pytm graphviz
 
-      - name: Run pyTM threat model
+      - name: Executar análise com Semgrep
         run: |
-          python threat_model.py --dfd > pytm_report.txt
+          semgrep --config=semgrep_rules.yaml app.py --json > semgrep_report.json
 
-      - name: Upload pyTM Report
+      - name: Gerar modelo de ameaças com pyTM
+        run: |
+          python generate_threat_model.py
+
+      - name: Criar Diagrama de Fluxo de Dados (DFD)
+        run: |
+          python threat_model.py --dfd > pytm_report.dot
+          dot -Tpng pytm_report.dot -o pytm_report.png
+
+      - name: Fazer upload dos relatórios
         uses: actions/upload-artifact@v4
         with:
-          name: pytm-threat-report
-          path: pytm_report.txt
+          name: threat-intel-reports
+          path: |
+            semgrep_report.json
+            pytm_report.dot
+            pytm_report.png
