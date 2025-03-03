@@ -1,5 +1,6 @@
 import json
 import logging
+import hashlib
 from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Threat
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -35,10 +36,12 @@ fluxo3 = Dataflow(banco_dados, servidor_app, "Resposta do BD")
 fluxo4 = Dataflow(servidor_app, servico_externo, "Chamada API Externa")
 fluxo5 = Dataflow(servico_externo, servidor_app, "Resposta API Externa")
 
-
-existing_sids = set()
-
 existing_threats = set()
+
+def generate_unique_sid(mensagem, arquivo, linha):
+    unique_string = f"{mensagem}-{arquivo}-{linha}"
+    hash_object = hashlib.sha256(unique_string.encode())
+    return hash_object.hexdigest()[:10]  # Usamos os primeiros 10 caracteres do hash
 
 for resultado in semgrep_data.get("results", []):
     mensagem = resultado.get("extra", {}).get("message", "")
@@ -50,12 +53,10 @@ for resultado in semgrep_data.get("results", []):
         continue
     existing_threats.add(threat_key)
 
+    sid = generate_unique_sid(mensagem, arquivo, linha)
+
     try:
         if "SQL Injection" in mensagem:
-            sid = f"SQLI-{len(existing_sids) + 1}"
-            while sid in existing_sids:
-                sid = f"SQLI-{len(existing_sids) + 1}"
-            existing_sids.add(sid)
             ameaca_sqli = Threat(SID=sid)
             ameaca_sqli.description = f"SQL Injection detectado em {arquivo}, linha {linha}"
             ameaca_sqli.rationale = "Entrada não sanitizada pode permitir execução arbitrária de comandos SQL."
@@ -64,10 +65,6 @@ for resultado in semgrep_data.get("results", []):
             tm.threats.append(ameaca_sqli)
 
         elif "Cross-Site Scripting" in mensagem or "XSS" in mensagem:
-            sid = f"XSS-{len(existing_sids) + 1}"
-            while sid in existing_sids:
-                sid = f"XSS-{len(existing_sids) + 1}"
-            existing_sids.add(sid)
             ameaca_xss = Threat(SID=sid)
             ameaca_xss.description = f"XSS detectado em {arquivo}, linha {linha}"
             ameaca_xss.rationale = "Entrada do usuário refletida sem sanitização pode permitir injeção de scripts maliciosos."
@@ -76,10 +73,6 @@ for resultado in semgrep_data.get("results", []):
             tm.threats.append(ameaca_xss)
 
         elif "Mass Assignment" in mensagem:
-            sid = f"MA-{len(existing_sids) + 1}"
-            while sid in existing_sids:
-                sid = f"MA-{len(existing_sids) + 1}"
-            existing_sids.add(sid)
             ameaca_mass_assignment = Threat(SID=sid)
             ameaca_mass_assignment.description = f"Mass Assignment detectado em {arquivo}, linha {linha}"
             ameaca_mass_assignment.rationale = "Uso indevido de atribuição em massa pode levar à modificação não autorizada de atributos."
@@ -88,10 +81,6 @@ for resultado in semgrep_data.get("results", []):
             tm.threats.append(ameaca_mass_assignment)
 
         elif "Improper Validation" in mensagem:
-            sid = f"IV-{len(existing_sids) + 1}"
-            while sid in existing_sids:
-                sid = f"IV-{len(existing_sids) + 1}"
-            existing_sids.add(sid)
             ameaca_improper_validation = Threat(SID=sid)
             ameaca_improper_validation.description = f"Improper Validation detectado em {arquivo}, linha {linha}"
             ameaca_improper_validation.rationale = "Validação inadequada de entrada pode levar a várias vulnerabilidades de segurança."
@@ -100,10 +89,6 @@ for resultado in semgrep_data.get("results", []):
             tm.threats.append(ameaca_improper_validation)
 
         elif "Code Injection" in mensagem:
-            sid = f"CI-{len(existing_sids) + 1}"
-            while sid in existing_sids:
-                sid = f"CI-{len(existing_sids) + 1}"
-            existing_sids.add(sid)
             ameaca_code_injection = Threat(SID=sid)
             ameaca_code_injection.description = f"Code Injection detectado em {arquivo}, linha {linha}"
             ameaca_code_injection.rationale = "Injeção de código pode permitir a execução de código arbitrário no servidor."
@@ -112,10 +97,6 @@ for resultado in semgrep_data.get("results", []):
             tm.threats.append(ameaca_code_injection)
 
         elif "Active Debug Code" in mensagem:
-            sid = f"ADC-{len(existing_sids) + 1}"
-            while sid in existing_sids:
-                sid = f"ADC-{len(existing_sids) + 1}"
-            existing_sids.add(sid)
             ameaca_debug_code = Threat(SID=sid)
             ameaca_debug_code.description = f"Active Debug Code detectado em {arquivo}, linha {linha}"
             ameaca_debug_code.rationale = "O uso de modo de depuração ativo pode expor informações sensíveis."
