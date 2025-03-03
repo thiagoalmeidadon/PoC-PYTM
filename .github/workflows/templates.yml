@@ -22,7 +22,8 @@ jobs:
 
       - name: Executar análise com Semgrep
         run: |
-          semgrep --config=semgrep_rules.yaml --json > semgrep_report.json || true
+          semgrep --config=auto --json > semgrep_report.json || true
+        
 
       - name: Gerar modelo de ameaças com pyTM
         run: |
