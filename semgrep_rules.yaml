@@ -1,8 +1,5 @@
 rules:
   - id: flask-sql-injection
-    languages: [python]
-    message: "🚨 Injeção de SQL detectada! Use queries parametrizadas."
-    severity: ERROR
     patterns:
       - pattern: |
           cursor.execute("SELECT * FROM users WHERE username = " + request.args["username"])
@@ -10,14 +7,16 @@ rules:
           cursor.execute(f"SELECT * FROM users WHERE username = '{request.args['username']}'")
       - pattern: |
           cursor.execute("SELECT * FROM users WHERE username = '{}'".format(request.args["username"]))
+    message: "SQL Injection detectado! Use queries parametrizadas."
+    languages: [python]
+    severity: ERROR
 
   - id: flask-xss
-    languages: [python]
-    message: "🚨 XSS detectado! Sanitizar entrada do usuário antes de exibir."
-    severity: ERROR
     patterns:
       - pattern: |
           render_template_string(request.args['input'])
       - pattern: |
           return f"<h1>{request.args['input']}</h1>"
-
+    message: "XSS detectado! Sanitizar entrada do usuário antes de exibir."
+    languages: [python]
+    severity: ERROR
