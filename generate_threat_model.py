@@ -26,14 +26,16 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
     arquivo = resultado.get("path", "")
     linha = resultado.get("start", {}).get("line", "")
 
-    alvo = "servidor" if "XSS" in mensagem else "banco_dados"  
+    
+    alvo = servidor if "XSS" in mensagem else banco_dados
 
     threat = Threat(
         SID=f"THREAT-{idx:04d}",
         description=f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}",
-        target=alvo  
+        target=(alvo,)  
     )
 
     tm.add(threat)  
+
 
 tm.process()
