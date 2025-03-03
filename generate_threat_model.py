@@ -17,7 +17,6 @@ usuario = Actor("Usuário")
 servidor = Server("Servidor Web")
 banco_dados = Datastore("Banco de Dados")
 
-
 Dataflow(usuario, servidor, "Requisição HTTP")
 Dataflow(servidor, banco_dados, "Consulta SQL")
 Dataflow(banco_dados, servidor, "Resposta SQL")
@@ -29,9 +28,12 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
     arquivo = resultado.get("path", "")
     linha = resultado.get("start", {}).get("line", "")
 
-    ameaca = Threat(SID=f"THREAT-{idx:04d}")
-    ameaca.description = f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}"
-    ameaca.target = servidor if "XSS" in mensagem else banco_dados
+    ameaca = Threat(
+        SID=f"THREAT-{idx:04d}",
+        description=f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}",
+        target=servidor if "XSS" in mensagem else banco_dados
+    )
+    
     tm.threats.append(ameaca)
 
 
