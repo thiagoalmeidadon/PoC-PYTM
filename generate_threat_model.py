@@ -1,40 +1,27 @@
 import json
-import logging
 from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Threat
 
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+with open('semgrep_report.json') as f:
+    semgrep_data = json.load(f)
 
 
-try:
-    with open('semgrep_report.json') as f:
-        semgrep_data = json.load(f)
-except FileNotFoundError:
-    logging.error("Arquivo 'semgrep_report.json' não encontrado. Verifique se o Semgrep foi executado corretamente.")
-    exit(1)
-except json.JSONDecodeError:
-    logging.error("Erro ao decodificar 'semgrep_report.json'. Verifique se o arquivo está corrompido.")
-    exit(1)
-
-
-tm = TM("Auto-Generated Threat Model")
-tm.description = "Modelo criado automaticamente a partir do Semgrep."
+tm = TM("Modelo de Ameaças")
+tm.description = "Modelo gerado a partir dos resultados do Semgrep."
 
 
 internet = Boundary("Internet")
 
 
 usuario = Actor("Usuário")
-servidor_app = Server("Aplicação Flask")
+servidor = Server("Servidor Web")
 banco_dados = Datastore("Banco de Dados")
 
 
-fluxo1 = Dataflow(usuario, servidor_app, "Entrada do Usuário")
-fluxo2 = Dataflow(servidor_app, banco_dados, "Consulta ao BD")
-fluxo3 = Dataflow(banco_dados, servidor_app, "Resposta do BD")
-
-
-sids_existentes = set()
+Dataflow(usuario, servidor, "Requisição HTTP")
+Dataflow(servidor, banco_dados, "Consulta SQL")
+Dataflow(banco_dados, servidor, "Resposta SQL")
+Dataflow(servidor, usuario, "Resposta HTTP")
 
 
 for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
@@ -42,28 +29,10 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
     arquivo = resultado.get("path", "")
     linha = resultado.get("start", {}).get("line", "")
 
-   
-    sid = f"THREAT-{idx:04d}"
-
-    if sid in sids_existentes:
-        continue  
-
-    sids_existentes.add(sid)  
-
-    try:
-        ameaca = Threat(SID=sid)
-        ameaca.description = f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}"
-        ameaca.rationale = "Descrição detalhada da ameaça."
-        ameaca.mitigation = "Medidas de mitigação recomendadas."
-        ameaca.target = servidor_app if "XSS" in mensagem else banco_dados
-        tm.threats.append(ameaca)
-    except ValueError as e:
-        logging.error(f"Erro ao criar ameaça: {e}")
+    ameaca = Threat(SID=f"THREAT-{idx:04d}")
+    ameaca.description = f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}"
+    ameaca.target = servidor if "XSS" in mensagem else banco_dados
+    tm.threats.append(ameaca)
 
 
-try:
-    tm.process()
-    logging.info("Modelo de ameaças gerado com sucesso.")
-except Exception as e:
-    logging.error(f"Erro ao processar o modelo de ameaças: {e}")
-    exit(1)
+tm.process()
