@@ -5,22 +5,24 @@ from pytm import TM, Server, Datastore, Dataflow, Boundary, Process, Actor, Thre
 with open('semgrep_report.json') as f:
     semgrep_data = json.load(f)
 
+
 tm = TM("Auto-Generated Threat Model")
-tm.description = "Modelo criado automaticamente com base no código-fonte."
+tm.description = "Modelo criado automaticamente a partir do Semgrep."
 
 internet = Boundary("Internet")
 
+
 user = Actor("User")
 app_server = Server("Flask App")
-db = Datastore("SQLite Database")
+db = Datastore("Database")
+
 
 df1 = Dataflow(user, app_server, "User input")
 df2 = Dataflow(app_server, db, "DB Query")
 df3 = Dataflow(db, app_server, "DB Response")
 
-
 for result in semgrep_data.get("results", []):
-    issue_text = result.get("message", "")
+    issue_text = result.get("extra", {}).get("message", "")
     filename = result.get("path", "")
     line_number = result.get("start", {}).get("line", "")
 
@@ -33,7 +35,7 @@ for result in semgrep_data.get("results", []):
         )
         sqli_threat.target = db
 
-    if "XSS" in issue_text:
+    if "XSS" in issue_text or "Cross-Site Scripting" in issue_text:
         xss_threat = Threat(
             "Cross-Site Scripting (XSS)",
             f"XSS detectado em {filename}, linha {line_number}",
