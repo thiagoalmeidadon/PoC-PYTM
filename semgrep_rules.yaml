@@ -1,16 +1,23 @@
 rules:
-  - id: insecure-sql-query
+  - id: flask-sql-injection
     languages: [python]
+    message: "🚨 Injeção de SQL detectada! Use queries parametrizadas."
+    severity: ERROR
     patterns:
       - pattern: |
-          cursor.execute(f"... {request...} ...")
-    message: "Possível SQL Injection detectado! Evite concatenar strings diretamente em queries SQL."
-    severity: ERROR
+          cursor.execute("SELECT * FROM users WHERE username = " + request.args["username"])
+      - pattern: |
+          cursor.execute(f"SELECT * FROM users WHERE username = '{request.args['username']}'")
+      - pattern: |
+          cursor.execute("SELECT * FROM users WHERE username = '{}'".format(request.args["username"]))
 
-  - id: xss-in-render-template
+  - id: flask-xss
     languages: [python]
+    message: "🚨 XSS detectado! Sanitizar entrada do usuário antes de exibir."
+    severity: ERROR
     patterns:
       - pattern: |
-          render_template_string(f"... {request...} ...")
-    message: "Possível XSS detectado! Evite renderizar entrada do usuário sem sanitização."
-    severity: ERROR
+          render_template_string(request.args['input'])
+      - pattern: |
+          return f"<h1>{request.args['input']}</h1>"
+
