@@ -15,8 +15,10 @@ jobs:
 
       - name: Instalar dependências
         run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
           python -m pip install --upgrade pip
-          pip install semgrep pytm graphviz flask
+          pip install semgrep pytm flask
 
       - name: Executar análise com Semgrep
         run: |
@@ -29,7 +31,12 @@ jobs:
       - name: Criar Diagrama de Fluxo de Dados (DFD)
         run: |
           python threat_model.py --dfd > pytm_report.dot
-          dot -Tpng pytm_report.dot -o pytm_report.png
+          if [ -s pytm_report.dot ]; then
+            dot -Tpng pytm_report.dot -o pytm_report.png
+          else
+            echo "ERRO: O arquivo pytm_report.dot está vazio! O pyTM pode não ter encontrado ameaças."
+            exit 1
+          fi
 
       - name: Fazer upload dos relatórios
         uses: actions/upload-artifact@v4
