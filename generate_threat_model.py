@@ -17,7 +17,6 @@ user = Actor("User")
 app_server = Server("Flask App")
 db = Datastore("Database")
 
-
 df1 = Dataflow(user, app_server, "User input")
 df2 = Dataflow(app_server, db, "DB Query")
 df3 = Dataflow(db, app_server, "DB Response")
@@ -26,10 +25,19 @@ df3 = Dataflow(db, app_server, "DB Response")
 threat_counter = 1
 
 
+existing_threats = set()
+
+
 for result in semgrep_data.get("results", []):
     issue_text = result.get("extra", {}).get("message", "")
     filename = result.get("path", "")
     line_number = result.get("start", {}).get("line", "")
+    threat_key = f"{issue_text}-{filename}-{line_number}" 
+
+    if threat_key in existing_threats:
+        continue  
+
+    existing_threats.add(threat_key)  
 
     if "SQL Injection" in issue_text:
         sqli_threat = Threat(SID=f"SQLI-{threat_counter}")
