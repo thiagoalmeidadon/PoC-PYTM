@@ -9,7 +9,7 @@ with open('semgrep_report.json') as f:
 tm = TM("Modelo de Ameaças")
 tm.description = "Modelo gerado a partir dos resultados do Semgrep."
 
-#
+
 usuario = Actor("Usuário")
 servidor = Server("Servidor Web")
 banco_dados = Datastore("Banco de Dados")
@@ -28,11 +28,12 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
 
     alvo = "servidor" if "XSS" in mensagem else "banco_dados"  
 
-    tm.threats.append(Threat(
+    threat = Threat(
         SID=f"THREAT-{idx:04d}",
         description=f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}",
         target=alvo  
-    ))
+    )
 
+    tm.add(threat)  
 
 tm.process()
