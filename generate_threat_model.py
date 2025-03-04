@@ -25,19 +25,15 @@ tm = TM("Modelo de Ameaças")
 tm.description = "Modelo gerado a partir dos resultados do Semgrep."
 
 
-usuario = Actor("usuario")
-servidor = Server("servidor")
-banco_dados = Datastore("banco_dados")
-
-tm.add(usuario)
-tm.add(servidor)
-tm.add(banco_dados)
+usuario = Actor("Usuário")
+servidor = Server("Servidor Web")
+banco_dados = Datastore("Banco de Dados")
 
 
-tm.add(Dataflow(usuario, servidor, "Requisição HTTP"))
-tm.add(Dataflow(servidor, banco_dados, "Consulta SQL"))
-tm.add(Dataflow(banco_dados, servidor, "Resposta SQL"))
-tm.add(Dataflow(servidor, usuario, "Resposta HTTP"))
+Dataflow(usuario, servidor, "Requisição HTTP")
+Dataflow(servidor, banco_dados, "Consulta SQL")
+Dataflow(banco_dados, servidor, "Resposta SQL")
+Dataflow(servidor, usuario, "Resposta HTTP")
 
 
 with open('semgrep_report.json') as f:
@@ -56,12 +52,11 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
     alvo = servidor if "XSS" in mensagem else banco_dados
 
     
-    threat = Threat(
+    Threat(
         SID=threat_code,
         description=f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}",
         target=alvo  
     )
 
-    tm.add(threat)  
 
 tm.process()
