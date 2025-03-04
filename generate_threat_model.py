@@ -3,9 +3,9 @@ from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Threat
 
 
 mapeamento_ameacas = {
-    "SQL Injection": "INP05",  
-    "XSS": "INP39",  
-    "Cross-Site Scripting": "INP40",  
+    "SQL Injection": "INP05",
+    "XSS": "INP39",
+    "Cross-Site Scripting": "INP40",
     "Privilege Escalation": "AC12",
     "Command Injection": "INP31",
     "Code Injection": "INP26",
@@ -33,7 +33,6 @@ usuario = Actor("Usuário")
 servidor = Server("Servidor Web")
 banco_dados = Datastore("Banco de Dados")
 
-
 Dataflow(usuario, servidor, "Requisição HTTP")
 Dataflow(servidor, banco_dados, "Consulta SQL")
 Dataflow(banco_dados, servidor, "Resposta SQL")
@@ -46,24 +45,16 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
     linha = resultado.get("start", {}).get("line", "")
 
     
-    threat_code = None
-    for key, value in mapeamento_ameacas.items():
-        if key.lower() in mensagem.lower():
-            threat_code = value
-            break
+    threat_code = next((code for key, code in mapeamento_ameacas.items() if key.lower() in mensagem.lower()), "INP14")
 
     
-    if not threat_code:
-        threat_code = "INP14"  
-
-    
-    alvo = "servidor" if "XSS" in mensagem else "banco_dados"
+    alvo = servidor if "XSS" in mensagem else banco_dados
 
     
     threat = Threat(
         SID=threat_code,
         description=f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}",
-        target=alvo
+        target=alvo  
     )
 
     tm.add(threat)  
