@@ -1,65 +1,63 @@
 import json
-from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Threat
+import pytm
+import pytm.pytm
+
+from pytm import TM, Actor, Server, Datastore, Dataflow, Threat
+from pytm.pytm import TM as TM_class
 
 
-mapeamento_ameacas = {
-    "SQL Injection": "INP05",
-    "XSS": "INP39",
-    "Cross-Site Scripting": "INP40",
-    "Privilege Escalation": "AC12",
-    "Command Injection": "INP31",
-    "Code Injection": "INP26",
-    "Session Hijacking": "AC17",
-    "CSRF": "AC21",
-    "LDAP Injection": "INP09",
-    "XML Injection": "INP32",
-    "Remote Code Execution": "INP33",
-    "File Inclusion": "INP16",
-    "Authentication Bypass": "AA01",
-    "API Manipulation": "LB01",
-    "Buffer Overflow": "INP07"
+vuln_map = {
+    "sql injection": "INP05",
+    "xss": "INP39"
 }
 
 
-tm = TM("Modelo de Ameaças")
-tm.description = "Modelo gerado a partir dos resultados do Semgrep."
+tm = TM("Threat Model gerado pelo Semgrep")
+tm.description = "Exemplo para versões antigas do PyTM que requerem monkey patch"
 
 
-tm.servidor = Server("servidor")
-tm.banco_dados = Datastore("banco_dados")
-tm.usuario = Actor("usuario")
+servidor = Server("ServidorWeb")
+banco_dados = Datastore("BancoDeDados")
+usuario = Actor("Usuario")
 
 
-Dataflow(tm.usuario, tm.servidor, "Requisição HTTP")
-Dataflow(tm.servidor, tm.banco_dados, "Consulta SQL")
-Dataflow(tm.banco_dados, tm.servidor, "Resposta SQL")
-Dataflow(tm.servidor, tm.usuario, "Resposta HTTP")
+pytm.pytm.ServidorWeb = servidor
+pytm.pytm.BancoDeDados = banco_dados
+pytm.pytm.Usuario = usuario
+
+Dataflow(usuario, servidor, "Request")
+Dataflow(servidor, banco_dados, "Query")
+Dataflow(banco_dados, servidor, "Response")
+Dataflow(servidor, usuario, "Response")
 
 
-with open('semgrep_report.json') as f:
+with open("semgrep_report.json", "r", encoding="utf-8") as f:
     semgrep_data = json.load(f)
 
 
-for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
-    mensagem = resultado.get("extra", {}).get("message", "")
-    arquivo = resultado.get("path", "")
-    linha = resultado.get("start", {}).get("line", "")
+for idx, result in enumerate(semgrep_data.get("results", []), start=1):
+    msg = result.get("extra", {}).get("message", "")
+    arquivo = result.get("path", "")
+    linha = result.get("start", {}).get("line", "")
 
     
-    threat_code = next((code for key, code in mapeamento_ameacas.items() if key.lower() in mensagem.lower()), "INP14")
-
-    
-    alvo = "servidor" if "XSS" in mensagem else "banco_dados"
+    lower_msg = msg.lower()
+    sid_encontrado = "INP14"  
+    for termo, sid_valor in vuln_map.items():
+        if termo in lower_msg:
+            sid_encontrado = sid_valor
+            break
 
     
     threat = Threat(
-        SID=threat_code,
-        description=f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}",
-        target=getattr(tm, alvo)  
+        SID=sid_encontrado,
+        name=f"Achado Semgrep #{idx}",
+        description=f"Ameaça detectada em {arquivo}, linha {linha}: {msg}",
+        target="ServidorWeb"
     )
 
     
-    tm.threats.append(threat)
+    TM_class._threats.append(threat)
 
 
 tm.process()

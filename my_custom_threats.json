@@ -1,0 +1,62 @@
+[
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 8",
+    "target": "servidor",
+    "name": "AmeacaSemgrep1"
+  },
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 9",
+    "target": "servidor",
+    "name": "AmeacaSemgrep2"
+  },
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 14",
+    "target": "servidor",
+    "name": "AmeacaSemgrep3"
+  },
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 14",
+    "target": "servidor",
+    "name": "AmeacaSemgrep4"
+  },
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 15",
+    "target": "servidor",
+    "name": "AmeacaSemgrep5"
+  },
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 15",
+    "target": "servidor",
+    "name": "AmeacaSemgrep6"
+  },
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 27",
+    "target": "servidor",
+    "name": "AmeacaSemgrep7"
+  },
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 27",
+    "target": "servidor",
+    "name": "AmeacaSemgrep8"
+  },
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 27",
+    "target": "servidor",
+    "name": "AmeacaSemgrep9"
+  },
+  {
+    "SID": "INP05",
+    "description": "Amea\u00e7a em app.py, linha 30",
+    "target": "servidor",
+    "name": "AmeacaSemgrep10"
+  }
+]
