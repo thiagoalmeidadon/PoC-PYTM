@@ -31,7 +31,7 @@ jobs:
 
       - name: Criar Diagrama de Fluxo de Dados (DFD)
         run: |
-          python threat_model.py --dfd > pytm_report.dot
+          python generate_threat_model.py --dfd > pytm_report.dot
           if [ -s pytm_report.dot ]; then
             dot -Tpng pytm_report.dot -o pytm_report.png
           else
