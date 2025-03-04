@@ -2,6 +2,25 @@ import json
 from pytm import TM, Server, Datastore, Dataflow, Boundary, Actor, Threat
 
 
+mapeamento_ameacas = {
+    "SQL Injection": "INP05",  
+    "XSS": "INP39",  
+    "Cross-Site Scripting": "INP40",  
+    "Privilege Escalation": "AC12",
+    "Command Injection": "INP31",
+    "Code Injection": "INP26",
+    "Session Hijacking": "AC17",
+    "CSRF": "AC21",
+    "LDAP Injection": "INP09",
+    "XML Injection": "INP32",
+    "Remote Code Execution": "INP33",
+    "File Inclusion": "INP16",
+    "Authentication Bypass": "AA01",
+    "API Manipulation": "LB01",
+    "Buffer Overflow": "INP07"
+}
+
+
 with open('semgrep_report.json') as f:
     semgrep_data = json.load(f)
 
@@ -13,6 +32,7 @@ tm.description = "Modelo gerado a partir dos resultados do Semgrep."
 usuario = Actor("Usuário")
 servidor = Server("Servidor Web")
 banco_dados = Datastore("Banco de Dados")
+
 
 Dataflow(usuario, servidor, "Requisição HTTP")
 Dataflow(servidor, banco_dados, "Consulta SQL")
@@ -26,12 +46,24 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
     linha = resultado.get("start", {}).get("line", "")
 
     
+    threat_code = None
+    for key, value in mapeamento_ameacas.items():
+        if key.lower() in mensagem.lower():
+            threat_code = value
+            break
+
+    
+    if not threat_code:
+        threat_code = "INP14"  
+
+    
     alvo = "servidor" if "XSS" in mensagem else "banco_dados"
 
+    
     threat = Threat(
-        SID=f"THREAT-{idx:04d}",
+        SID=threat_code,
         description=f"Ameaça detectada em {arquivo}, linha {linha}: {mensagem}",
-        target=alvo  
+        target=alvo
     )
 
     tm.add(threat)  
