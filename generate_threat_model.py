@@ -21,23 +21,27 @@ mapeamento_ameacas = {
 }
 
 
-with open('semgrep_report.json') as f:
-    semgrep_data = json.load(f)
-
-
 tm = TM("Modelo de Ameaças")
 tm.description = "Modelo gerado a partir dos resultados do Semgrep."
 
 
-usuario = Actor("Usuário")
-servidor = Server("servidor")  
-banco_dados = Datastore("banco_dados") 
+usuario = Actor("usuario")
+servidor = Server("servidor")
+banco_dados = Datastore("banco_dados")
+
+tm.add(usuario)
+tm.add(servidor)
+tm.add(banco_dados)
 
 
-Dataflow(usuario, servidor, "Requisição HTTP")
-Dataflow(servidor, banco_dados, "Consulta SQL")
-Dataflow(banco_dados, servidor, "Resposta SQL")
-Dataflow(servidor, usuario, "Resposta HTTP")
+tm.add(Dataflow(usuario, servidor, "Requisição HTTP"))
+tm.add(Dataflow(servidor, banco_dados, "Consulta SQL"))
+tm.add(Dataflow(banco_dados, servidor, "Resposta SQL"))
+tm.add(Dataflow(servidor, usuario, "Resposta HTTP"))
+
+
+with open('semgrep_report.json') as f:
+    semgrep_data = json.load(f)
 
 
 for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
@@ -49,7 +53,7 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
     threat_code = next((code for key, code in mapeamento_ameacas.items() if key.lower() in mensagem.lower()), "INP14")
 
     
-    alvo = "servidor" if "XSS" in mensagem else "banco_dados"
+    alvo = servidor if "XSS" in mensagem else banco_dados
 
     
     threat = Threat(
