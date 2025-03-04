@@ -30,8 +30,9 @@ tm.description = "Modelo gerado a partir dos resultados do Semgrep."
 
 
 usuario = Actor("Usuário")
-servidor = Server("Servidor Web")
-banco_dados = Datastore("Banco de Dados")
+servidor = Server("servidor")  
+banco_dados = Datastore("banco_dados") 
+
 
 Dataflow(usuario, servidor, "Requisição HTTP")
 Dataflow(servidor, banco_dados, "Consulta SQL")
@@ -48,7 +49,7 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
     threat_code = next((code for key, code in mapeamento_ameacas.items() if key.lower() in mensagem.lower()), "INP14")
 
     
-    alvo = servidor if "XSS" in mensagem else banco_dados
+    alvo = "servidor" if "XSS" in mensagem else "banco_dados"
 
     
     threat = Threat(
@@ -58,6 +59,5 @@ for idx, resultado in enumerate(semgrep_data.get("results", []), start=1):
     )
 
     tm.add(threat)  
-
 
 tm.process()
